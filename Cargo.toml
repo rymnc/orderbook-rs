@@ -1,0 +1,24 @@
+[package]
+name = "orderbook-rs"
+version = "0.1.0"
+edition = "2024"
+
+[profile.release]
+opt-level = 3             # Maximum optimization level
+lto = "fat"               # Link-time optimization across all dependencies
+codegen-units = 1         # Compile crate as a single unit for better optimization
+panic = "abort"           # Abort on panic for smaller binary
+strip = true              # Strip symbols from binary
+overflow-checks = false   # Disable integer overflow checks
+debug = false             # No debug info
+
+[dependencies]
+rand = "*"
+
+[[bin]]
+name = "orderbook-rs"
+path = "src/main.rs"
+
+[lib]
+name = "orderbook_rs"
+path = "src/lib.rs"

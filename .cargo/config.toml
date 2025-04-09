@@ -1,0 +1,7 @@
+[build]
+rustflags = [
+  "-C", "target-cpu=native",
+  "-C", "llvm-args=-inline-threshold=1000",
+  "-C", "no-vectorize-loops",
+  "-C", "force-frame-pointers=no"
+]
