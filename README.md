@@ -71,7 +71,7 @@ cargo test
 
 Run benchmarks:
 ```
-cargo run --release
+RUSTFLAGS="-C target-cpu=native" cargo run --release
 ```
 
 The long-running benchmark simulates realistic market activity for sustained periods to assess performance stability and throughput.
