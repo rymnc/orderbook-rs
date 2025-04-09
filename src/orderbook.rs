@@ -1,9 +1,10 @@
 //! Core orderbook implementation using Vec instead of BTreeMap
 
+#[cfg(feature = "perf")]
 use std::time::{Duration, Instant};
 
 use crate::memory::OrderPool;
-use crate::types::{precise_time_ns, Execution, Order, OrderType, PriceLevel, Side};
+use crate::types::{Execution, Order, OrderType, PriceLevel, Side, precise_time_ns};
 
 /// Configuration constants
 const PRICE_LEVELS: usize = 1024;
@@ -30,9 +31,13 @@ pub struct OrderBook {
     best_ask_idx: Option<usize>,
 
     // Performance monitoring
+    #[cfg(feature = "perf")]
     order_count: usize,
+    #[cfg(feature = "perf")]
     last_insert_time: Duration,
+    #[cfg(feature = "perf")]
     last_match_time: Duration,
+    #[cfg(feature = "perf")]
     last_cancel_time: Duration,
 
     // Statistics counters
@@ -69,9 +74,13 @@ impl OrderBook {
             tick_size: 1,
             best_bid_idx: None,
             best_ask_idx: None,
+            #[cfg(feature = "perf")]
             order_count: 0,
+            #[cfg(feature = "perf")]
             last_insert_time: Duration::default(),
+            #[cfg(feature = "perf")]
             last_match_time: Duration::default(),
+            #[cfg(feature = "perf")]
             last_cancel_time: Duration::default(),
             total_orders_processed: 0,
             total_quantity_matched: 0,
@@ -149,6 +158,7 @@ impl OrderBook {
     /// Add a new order to the book
     #[inline]
     pub fn add_order(&mut self, order: Order) -> Result<Vec<Execution>, String> {
+        #[cfg(feature = "perf")]
         let start_time = Instant::now();
 
         // Ensure order ID is within our capacity
@@ -178,7 +188,10 @@ impl OrderBook {
         // Handle market orders immediately
         if order.order_type() == OrderType::Market {
             let executions = self.match_market_order(order);
-            self.last_match_time = start_time.elapsed();
+            #[cfg(feature = "perf")]
+            {
+                self.last_match_time = start_time.elapsed();
+            }
             return Ok(executions);
         }
 
@@ -261,7 +274,10 @@ impl OrderBook {
                     }
                 }
 
-                self.order_count += 1;
+                #[cfg(feature = "perf")]
+                {
+                    self.order_count += 1;
+                }
             } else {
                 return Err("Order pool full".to_string());
             }
@@ -272,13 +288,17 @@ impl OrderBook {
             self.total_quantity_matched += exec.quantity;
         }
 
-        self.last_insert_time = start_time.elapsed();
+        #[cfg(feature = "perf")]
+        {
+            self.last_insert_time = start_time.elapsed();
+        }
         Ok(executions)
     }
 
     /// Cancel an existing order
     #[inline]
     pub fn cancel_order(&mut self, order_id: u64) -> Result<(), String> {
+        #[cfg(feature = "perf")]
         let start_time = Instant::now();
 
         if order_id >= self.order_id_to_index.len() as u64 {
@@ -346,18 +366,25 @@ impl OrderBook {
             // Deallocate from the memory pool
             self.order_pool.deallocate(index);
             self.order_id_to_index[order_id as usize] = None;
-            self.order_count -= 1;
+            #[cfg(feature = "perf")]
+            {
+                self.order_count -= 1;
+            }
         } else {
             return Err(format!("Order {} not found", order_id));
         }
 
-        self.last_cancel_time = start_time.elapsed();
+        #[cfg(feature = "perf")]
+        {
+            self.last_cancel_time = start_time.elapsed();
+        }
         Ok(())
     }
 
     /// Match a new limit order against the book
     #[inline]
     fn match_limit_order(&mut self, order: &mut Order) -> Vec<Execution> {
+        #[cfg(feature = "perf")]
         let start_time = Instant::now();
         let mut executions = Vec::with_capacity(10);
 
@@ -413,7 +440,10 @@ impl OrderBook {
                                 level.order_indices.retain(|&idx| idx != resting_idx);
                                 self.order_id_to_index[resting_order.order_id as usize] = None;
                                 self.order_pool.deallocate(resting_idx);
-                                self.order_count -= 1;
+                                #[cfg(feature = "perf")]
+                                {
+                                    self.order_count -= 1;
+                                }
                             }
                         }
 
@@ -499,7 +529,10 @@ impl OrderBook {
                                 level.order_indices.retain(|&idx| idx != resting_idx);
                                 self.order_id_to_index[resting_order.order_id as usize] = None;
                                 self.order_pool.deallocate(resting_idx);
-                                self.order_count -= 1;
+                                #[cfg(feature = "perf")]
+                                {
+                                    self.order_count -= 1;
+                                }
                             }
                         }
 
@@ -536,7 +569,10 @@ impl OrderBook {
             }
         }
 
-        self.last_match_time = start_time.elapsed();
+        #[cfg(feature = "perf")]
+        {
+            self.last_match_time = start_time.elapsed();
+        }
         executions
     }
 
@@ -591,7 +627,10 @@ impl OrderBook {
                                 level.order_indices.retain(|&idx| idx != resting_idx);
                                 self.order_id_to_index[resting_order.order_id as usize] = None;
                                 self.order_pool.deallocate(resting_idx);
-                                self.order_count -= 1;
+                                #[cfg(feature = "perf")]
+                                {
+                                    self.order_count -= 1;
+                                }
                             }
                         }
 
@@ -672,7 +711,10 @@ impl OrderBook {
                                 level.order_indices.retain(|&idx| idx != resting_idx);
                                 self.order_id_to_index[resting_order.order_id as usize] = None;
                                 self.order_pool.deallocate(resting_idx);
-                                self.order_count -= 1;
+                                #[cfg(feature = "perf")]
+                                {
+                                    self.order_count -= 1;
+                                }
                             }
                         }
 
@@ -748,6 +790,7 @@ impl OrderBook {
     }
 
     /// Get performance statistics
+    #[cfg(feature = "perf")]
     pub fn performance_stats(&self) -> (Duration, Duration, Duration, usize) {
         (
             self.last_insert_time,
@@ -819,11 +862,15 @@ impl OrderBook {
             best_ask: self.best_ask(),
             buy_levels: buy_level_count,
             sell_levels: sell_level_count,
+            #[cfg(feature = "perf")]
             order_count: self.order_count,
             total_orders_processed: self.total_orders_processed,
             total_quantity_matched: self.total_quantity_matched,
+            #[cfg(feature = "perf")]
             last_insert_time_ns: self.last_insert_time.as_nanos() as u64,
+            #[cfg(feature = "perf")]
             last_match_time_ns: self.last_match_time.as_nanos() as u64,
+            #[cfg(feature = "perf")]
             last_cancel_time_ns: self.last_cancel_time.as_nanos() as u64,
         }
     }
@@ -837,11 +884,15 @@ pub struct OrderBookSummary {
     pub best_ask: Option<u64>,
     pub buy_levels: usize,
     pub sell_levels: usize,
+    #[cfg(feature = "perf")]
     pub order_count: usize,
     pub total_orders_processed: u64,
     pub total_quantity_matched: u64,
+    #[cfg(feature = "perf")]
     pub last_insert_time_ns: u64,
+    #[cfg(feature = "perf")]
     pub last_match_time_ns: u64,
+    #[cfg(feature = "perf")]
     pub last_cancel_time_ns: u64,
 }
 
@@ -864,12 +915,15 @@ impl std::fmt::Display for OrderBookSummary {
 
         writeln!(f, "Buy Levels: {}", self.buy_levels)?;
         writeln!(f, "Sell Levels: {}", self.sell_levels)?;
-        writeln!(f, "Total Orders: {}", self.order_count)?;
         writeln!(f, "Processed Orders: {}", self.total_orders_processed)?;
         writeln!(f, "Matched Quantity: {}", self.total_quantity_matched)?;
-        writeln!(f, "Last Insert Time: {} ns", self.last_insert_time_ns)?;
-        writeln!(f, "Last Match Time: {} ns", self.last_match_time_ns)?;
-        writeln!(f, "Last Cancel Time: {} ns", self.last_cancel_time_ns)?;
+        #[cfg(feature = "perf")]
+        {
+            writeln!(f, "Total Orders: {}", self.order_count)?;
+            writeln!(f, "Last Insert Time: {} ns", self.last_insert_time_ns)?;
+            writeln!(f, "Last Match Time: {} ns", self.last_match_time_ns)?;
+            writeln!(f, "Last Cancel Time: {} ns", self.last_cancel_time_ns)?;
+        }
 
         Ok(())
     }

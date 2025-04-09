@@ -1,11 +1,13 @@
 //! Benchmarking utilities for the orderbook
 
+#[cfg(feature = "perf")]
 use std::time::Instant;
 
 use crate::orderbook::OrderBook;
 use crate::types::{Order, OrderType, Side};
 
 /// Benchmark the orderbook with a variety of operations
+#[cfg(feature = "perf")]
 pub fn benchmark_orderbook() {
     println!("Running orderbook benchmark...");
 
@@ -20,6 +22,7 @@ pub fn benchmark_orderbook() {
 }
 
 /// Benchmark order insertion
+#[cfg(feature = "perf")]
 fn bench_insertion(book: &mut OrderBook) {
     println!("\n>> Testing Limit Order Insertion");
 
@@ -31,11 +34,11 @@ fn bench_insertion(book: &mut OrderBook) {
     for i in 0..order_count {
         let side = if i % 2 == 0 { Side::Buy } else { Side::Sell };
         let price = if side == Side::Buy {
-            // Buy orders from 99900 to 100000
-            99_900 + (i as u64 % 100)
+            // Buy orders from 9990 to 10000
+            9990 + (i as u64 % 100)
         } else {
-            // Sell orders from 100000 to 100100
-            100_000 + (i as u64 % 100)
+            // Sell orders from 10000 to 10010
+            10000 + (i as u64 % 100)
         };
 
         orders.push(Order::new(i as u64, price, 100, side, OrderType::Limit));
@@ -64,6 +67,7 @@ fn bench_insertion(book: &mut OrderBook) {
 }
 
 /// Benchmark order matching
+#[cfg(feature = "perf")]
 fn bench_matching(book: &mut OrderBook) {
     println!("\n>> Testing Matching Performance");
 
@@ -135,6 +139,7 @@ fn bench_matching(book: &mut OrderBook) {
 }
 
 /// Benchmark order cancellation
+#[cfg(feature = "perf")]
 fn bench_cancellation(book: &mut OrderBook) {
     println!("\n>> Testing Cancellation Performance");
 
@@ -178,6 +183,7 @@ fn bench_cancellation(book: &mut OrderBook) {
 }
 
 /// Benchmark market depth retrieval
+#[cfg(feature = "perf")]
 fn bench_market_depth(book: &mut OrderBook) {
     println!("\n>> Testing Market Depth Retrieval");
 
@@ -227,6 +233,7 @@ fn bench_market_depth(book: &mut OrderBook) {
 }
 
 /// Benchmark a mixed workload simulating realistic market activity
+#[cfg(feature = "perf")]
 fn bench_mixed_workload(book: &mut OrderBook) {
     println!("\n>> Testing Mixed Workload Performance");
 
@@ -359,14 +366,6 @@ pub fn benchmark_long_running(book: &mut OrderBook) {
     let mut cancel_time = std::time::Duration::new(0, 0);
     let mut market_time = std::time::Duration::new(0, 0);
     let mut query_time = std::time::Duration::new(0, 0);
-
-    // Book state tracking
-    let mut max_order_count = 0;
-
-    // Clear the book first
-    for i in 0..book.summary().order_count {
-        let _ = book.cancel_order(i as u64);
-    }
 
     // Seed the book with some initial orders
     let seed_count = 10_000;
@@ -504,9 +503,6 @@ pub fn benchmark_long_running(book: &mut OrderBook) {
             _ => unreachable!(),
         }
 
-        // Track maximum order count
-        max_order_count = std::cmp::max(max_order_count, book.summary().order_count);
-
         // Periodic reporting
         if last_report.elapsed() >= report_interval {
             last_report = std::time::Instant::now();
@@ -514,11 +510,10 @@ pub fn benchmark_long_running(book: &mut OrderBook) {
             let ops_per_sec = total_operations as f64 / elapsed.as_secs_f64();
 
             println!(
-                "Progress: {:.1}s elapsed, {} operations, {:.2} ops/sec, {} orders in book",
+                "Progress: {:.1}s elapsed, {} operations, {:.2} ops/sec",
                 elapsed.as_secs_f64(),
                 total_operations,
                 ops_per_sec,
-                book.summary().order_count
             );
         }
     }
@@ -611,7 +606,5 @@ pub fn benchmark_long_running(book: &mut OrderBook) {
     }
 
     println!("\nOrderbook statistics:");
-    println!("  Maximum order count: {}", max_order_count);
-    println!("  Final order count: {}", book.summary().order_count);
     println!("  Final orderbook state:\n{}", book.summary());
 }

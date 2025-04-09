@@ -22,3 +22,6 @@ path = "src/main.rs"
 [lib]
 name = "orderbook_rs"
 path = "src/lib.rs"
+
+[features]
+perf = []

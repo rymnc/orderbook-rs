@@ -10,6 +10,7 @@ pub mod memory;
 pub mod orderbook;
 pub mod types;
 
+#[cfg(feature = "perf")]
 pub use benchmarks::benchmark_orderbook;
 pub use memory::{OrderPool, PriceLookupTable};
 pub use orderbook::OrderBook;
@@ -56,6 +57,7 @@ mod tests {
 
         // Check summary
         let summary = book.summary();
+        #[cfg(feature = "perf")]
         assert_eq!(summary.order_count, 2);
         assert_eq!(summary.buy_levels, 1);
         assert_eq!(summary.sell_levels, 1);
@@ -153,8 +155,8 @@ mod tests {
         assert_eq!(bids.len(), 0);
 
         // Check summary
-        let summary = book.summary();
-        assert_eq!(summary.order_count, 0);
+        #[cfg(feature = "perf")]
+        assert_eq!(book.summary().order_count, 0);
     }
 
     #[test]
@@ -353,8 +355,8 @@ mod tests {
         }
 
         // Check that we have the expected number of orders
-        let summary = book.summary();
-        assert_eq!(summary.order_count, 200);
+        #[cfg(feature = "perf")]
+        assert_eq!(book.summary().order_count, 200);
 
         // Check market depth
         let (bids, asks) = book.market_depth(10);

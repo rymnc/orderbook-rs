@@ -1,8 +1,8 @@
 //! Memory management utilities for high-performance allocation
 
 use std::mem::MaybeUninit;
-use std::simd::cmp::SimdPartialEq;
 use std::simd::Simd;
+use std::simd::cmp::SimdPartialEq;
 
 use crate::types::Order;
 
