@@ -78,7 +78,7 @@ The long-running benchmark simulates realistic market activity for sustained per
 
 ## Requirements
 
-- Rust 1.65 or higher
+- Rust 1.85 or higher
 - SIMD supported on relevant CPUs
 
 ## License
