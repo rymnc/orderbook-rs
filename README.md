@@ -15,7 +15,7 @@ This orderbook provides microsecond-level performance for order management and m
 
 The implementation achieves:
 - Sub-microsecond latency for core operations
-- Throughput exceeding 1.5 million operations per second
+- Throughput exceeding 1.5 million operations per second (M4 Pro 48gb)
 - Support for order books with hundreds of thousands of resting orders
 - Consistent performance under varied market conditions
 
